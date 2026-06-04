@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="840" viewBox="0 0 1920 840">
+  <defs>
+    <linearGradient id="hero-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="45%" stop-color="#44403c"/>
+      <stop offset="100%" stop-color="#78716c"/>
+    </linearGradient>
+    <pattern id="hero-pattern" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+      <rect width="80" height="80" fill="none"/>
+      <path d="M0 40h80M40 0v80" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="840" fill="url(#hero-bg)"/>
+  <rect width="1920" height="840" fill="url(#hero-pattern)"/>
+  <circle cx="1600" cy="200" r="280" fill="#d6d3d1" fill-opacity="0.12"/>
+  <circle cx="300" cy="680" r="220" fill="#fafaf9" fill-opacity="0.08"/>
+</svg>

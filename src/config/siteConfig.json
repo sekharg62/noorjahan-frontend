@@ -1,0 +1,64 @@
+{
+  "brandName": "NOORJAHAN FABRICS & Design",
+  "shortName": "NOORJAHAN",
+  "brandSubtitle": "Fabrics & Design",
+  "tagline": "Premium Fabrics, Unstitched & Ready to Wear Designer Outfits",
+  "logo": {
+    "src": "/logo.svg",
+    "alt": "NOORJAHAN FABRICS & Design",
+    "width": 220,
+    "height": 48
+  },
+  "contact": {
+    "email": "info@noorjahanfabrics.com",
+    "customerCareEmail": "customercare@noorjahanfabrics.com",
+    "phone": "+880-2-55012345",
+    "whatsapp": "+8801700000000",
+    "whatsappLink": "https://wa.me/8801700000000",
+    "uan": "+880-9600-123456",
+    "headOffice": "House 12, Road 108, Gulshan Avenue, Gulshan-2, Dhaka 1212, Bangladesh"
+  },
+  "announcement": {
+    "enabled": true,
+    "text": "Free Shipping Over {{threshold}}. For Queries:",
+    "showPhone": true,
+    "showWhatsApp": true,
+    "scrollSpeedSeconds": 32
+  },
+  "shipping": {
+    "freeShippingThreshold": 300,
+    "currency": "BDT",
+    "currencySymbol": "৳"
+  },
+ "social": {
+  "facebook": "https://www.facebook.com/yourpage",
+  "instagram": "https://www.instagram.com/yourpage",
+  "youtube": "https://www.youtube.com/yourchannel",
+  "pinterest": "https://www.pinterest.com/yourpage",
+  "tiktok": "https://www.tiktok.com/@yourpage"
+},
+  "seo": {
+    "siteUrl": "http://localhost:3000",
+    "defaultTitle": "NOORJAHAN FABRICS & Design | Premium Fabrics & Designer Outfits",
+    "defaultDescription": "Shop premium fabrics, unstitched suits, and ready to wear designer outfits at NOORJAHAN FABRICS & Design.",
+    "keywords": [
+      "noorjahan fabrics",
+      "designer fabrics",
+      "unstitched suits",
+      "ready to wear",
+      "pakistani fashion",
+      "lawn collection",
+      "premium textiles"
+    ],
+    "ogImage": "/og-image.jpg",
+    "twitterHandle": ""
+  },
+  "footer": {
+    "copyright": "© 2026 NOORJAHAN FABRICS & Design",
+    "developer": ""
+  },
+  "newsletter": {
+    "enabled": true,
+    "title": "Signup For Our Newsletter"
+  }
+}
