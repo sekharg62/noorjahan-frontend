@@ -9,7 +9,7 @@ import { images, productImage } from "@/lib/images";
 
 export const mainNavigation: NavItem[] = [
   {
-    label: "Eid Arrivals",
+    label: "Eid Arrrivals",
     href: "/collection/eid-arrivals",
     children: [
       { label: "Stitched", href: "/collection/eid-stitched" },
