@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "noorjahan-bd.netlify.app",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.dribbble.com",
+        pathname: "/**",
+      },
     ],
   },
 };

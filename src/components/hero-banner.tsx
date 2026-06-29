@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SiteImage } from "@/components/site-image";
-import { heroSlides } from "@/data/data";
+import { useBanners } from "@/context/banner-context";
 
 const AUTO_PLAY_MS = 5500;
 
 export function HeroBanner() {
+  const { homeBanners, loading } = useBanners();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const slideCount = heroSlides.length;
+  const slideCount = homeBanners.length;
 
   const goToSlide = useCallback(
     (index: number) => {
@@ -31,66 +31,44 @@ export function HeroBanner() {
     return () => window.clearInterval(timer);
   }, [goNext, isPaused, slideCount]);
 
-  if (slideCount === 0) return null;
+  useEffect(() => {
+    if (activeIndex >= slideCount) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, slideCount]);
+
+  if (loading || slideCount === 0) return null;
 
   return (
     <section
       className="relative"
       aria-roledescription="carousel"
-      aria-label="Featured collections"
+      aria-label="Home banners"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
     >
       <div className="relative aspect-[16/7] sm:aspect-[16/6] lg:aspect-[21/8] overflow-hidden bg-neutral-100">
-        {heroSlides.map((slide, index) => {
+        {homeBanners.map((banner, index) => {
           const isActive = index === activeIndex;
 
           return (
             <div
-              key={`${slide.image}-${index}`}
+              key={banner.id}
               className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                 isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
               }`}
               aria-hidden={!isActive}
             >
               <SiteImage
-                src={slide.image}
-                alt={slide.title}
+                src={banner.imgUrl}
+                alt={`Home banner ${index + 1}`}
                 fill
                 priority={index === 0}
                 className="object-cover"
                 sizes="100vw"
               />
-              <div className="absolute inset-0 bg-black/20" />
-
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4 pointer-events-none">
-                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-serif tracking-wide max-w-2xl">
-                  {slide.title}
-                  {slide.subtitle && (
-                    <span className="block text-lg sm:text-2xl mt-2 font-light opacity-90">
-                      / {slide.subtitle}
-                    </span>
-                  )}
-                </h2>
-                <div className="mt-6 flex flex-wrap gap-3 justify-center pointer-events-auto">
-                  <Link
-                    href={slide.ctaHref}
-                    className="bg-white text-neutral-900 px-6 py-3 text-xs uppercase tracking-widest hover:bg-neutral-100 transition-colors"
-                  >
-                    {slide.ctaLabel}
-                  </Link>
-                  {slide.secondaryCtaHref && slide.secondaryCtaLabel && (
-                    <Link
-                      href={slide.secondaryCtaHref}
-                      className="border border-white text-white px-6 py-3 text-xs uppercase tracking-widest hover:bg-white/10 transition-colors"
-                    >
-                      {slide.secondaryCtaLabel}
-                    </Link>
-                  )}
-                </div>
-              </div>
             </div>
           );
         })}
@@ -119,9 +97,9 @@ export function HeroBanner() {
               role="tablist"
               aria-label="Slide pagination"
             >
-              {heroSlides.map((slide, index) => (
+              {homeBanners.map((banner, index) => (
                 <button
-                  key={`dot-${slide.image}-${index}`}
+                  key={`dot-${banner.id}`}
                   type="button"
                   role="tab"
                   aria-selected={index === activeIndex}
