@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { SiteImage } from "@/components/site-image";
 import { checkoutCopy } from "@/data/static-pages";
@@ -14,6 +14,53 @@ import { calculateShippingFee } from "@/lib/shipping";
 import { formatPrice } from "@/lib/site-config";
 import { useCart } from "@/context/cart-context";
 import type { ShippingAddress } from "@/types";
+
+const BANGLADESH_COUNTRY_CODE = "+880";
+/** Local BD mobile: 01XXXXXXXXX (11) or 1XXXXXXXXX (10) before +880 */
+const BANGLADESH_PHONE_LOCAL_MAX_LENGTH = 11;
+
+function CheckoutPhoneField({ label }: { label: string }) {
+  const [phoneLocal, setPhoneLocal] = useState("");
+
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, BANGLADESH_PHONE_LOCAL_MAX_LENGTH);
+    setPhoneLocal(digits);
+  };
+
+  return (
+    <div>
+      <label
+        htmlFor="checkout-phone"
+        className="block text-xs uppercase tracking-widest text-neutral-900 mb-2"
+      >
+        {label}
+      </label>
+      <div className="flex border border-neutral-300 focus-within:border-neutral-900">
+        <span
+          className="shrink-0 px-4 py-3 text-sm text-neutral-600 bg-neutral-50 border-r border-neutral-300 select-none"
+          aria-hidden
+        >
+          {BANGLADESH_COUNTRY_CODE}
+        </span>
+        <input
+          id="checkout-phone"
+          name="phoneLocal"
+          type="tel"
+          required
+          value={phoneLocal}
+          onChange={handlePhoneChange}
+          autoComplete="tel-national"
+          inputMode="numeric"
+          maxLength={BANGLADESH_PHONE_LOCAL_MAX_LENGTH}
+          placeholder="1XXXXXXXXX"
+          className="min-w-0 flex-1 px-4 py-3 text-sm text-neutral-900 focus:outline-none"
+        />
+      </div>
+    </div>
+  );
+}
 
 function CheckoutField({
   id,
@@ -68,9 +115,14 @@ export function CheckoutForm() {
     const form = e.currentTarget;
     const data = new FormData(form);
 
+    const phoneLocal = String(data.get("phoneLocal") ?? "")
+      .trim()
+      .replace(/\D/g, "")
+      .replace(/^0+/, "");
+
     const address: ShippingAddress = {
       fullName: String(data.get("fullName") ?? "").trim(),
-      phone: String(data.get("phone") ?? "").trim(),
+      phone: phoneLocal ? `${BANGLADESH_COUNTRY_CODE}${phoneLocal}` : "",
       email: String(data.get("email") ?? "").trim(),
       addressLine: String(data.get("addressLine") ?? "").trim(),
       city: String(data.get("city") ?? "").trim(),
@@ -114,13 +166,7 @@ export function CheckoutForm() {
               autoComplete="name"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <CheckoutField
-                id="checkout-phone"
-                name="phone"
-                label={copy.fields.phone}
-                type="tel"
-                autoComplete="tel"
-              />
+              <CheckoutPhoneField label={copy.fields.phone} />
               <CheckoutField
                 id="checkout-email"
                 name="email"
