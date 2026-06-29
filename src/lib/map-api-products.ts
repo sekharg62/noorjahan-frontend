@@ -1,5 +1,8 @@
 import type { Product } from "@/types";
-import { normalizeProductsResponse } from "@/service/productService";
+import {
+  normalizeProductResponse,
+  normalizeProductsResponse,
+} from "@/service/productService";
 
 function formatCategoryName(categorySlug: string): string {
   return categorySlug
@@ -16,7 +19,10 @@ function getProductImages(item: any): any[] {
   );
 }
 
-export function mapApiProductToProduct(item: any, categorySlug: string): Product {
+export function mapApiProductToProduct(
+  item: any,
+  categorySlug?: string,
+): Product {
   const images = getProductImages(item);
   const primaryImage =
     images.find((image) => image.isPrimary)?.imgUrl ?? images[0]?.imgUrl ?? "";
@@ -26,13 +32,17 @@ export function mapApiProductToProduct(item: any, categorySlug: string): Product
     item.offerPrice != null && item.offerPrice !== ""
       ? Number(item.offerPrice)
       : null;
-  const price = offerPrice != null && !Number.isNaN(offerPrice) ? offerPrice : listPrice;
+  const price =
+    offerPrice != null && !Number.isNaN(offerPrice) ? offerPrice : listPrice;
   const compareAtPrice =
     offerPrice != null &&
     !Number.isNaN(offerPrice) &&
     listPrice > offerPrice
       ? listPrice
       : undefined;
+  const collectionSlug = item.menuSubmenu?.slug ?? categorySlug ?? "";
+  const collectionName =
+    item.menuSubmenu?.name ?? formatCategoryName(collectionSlug);
 
   return {
     id: item.id,
@@ -40,8 +50,8 @@ export function mapApiProductToProduct(item: any, categorySlug: string): Product
     name: item.name,
     price,
     compareAtPrice,
-    collectionSlug: categorySlug,
-    collectionName: formatCategoryName(categorySlug),
+    collectionSlug,
+    collectionName,
     image: primaryImage,
     images: imageUrls.length > 0 ? imageUrls : primaryImage ? [primaryImage] : [],
     soldOut: item.stock <= 0 || item.isActive === false,
@@ -50,6 +60,12 @@ export function mapApiProductToProduct(item: any, categorySlug: string): Product
     sku: item.id,
     sizes: ["S", "M", "L"],
   };
+}
+
+export function mapApiProductResponseToProduct(response: any): Product | null {
+  const item = normalizeProductResponse(response);
+  if (!item) return null;
+  return mapApiProductToProduct(item);
 }
 
 export function mapApiProductsToProducts(
