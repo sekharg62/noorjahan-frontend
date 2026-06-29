@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { CartProvider } from "@/context/cart-context";
+import { MenuSubmenuProvider } from "@/context/menu-submenu-context";
 import { SearchProvider } from "@/context/search-context";
 import { WishlistProvider } from "@/context/wishlist-context";
 import { buildMetadata } from "@/lib/seo";
@@ -40,21 +41,23 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <WishlistProvider>
-          <SearchProvider>
-            <CartProvider>
-              <AnnouncementBar />
-              <Header />
-              <main id="main-content" className="flex-1">
-                {children}
-              </main>
-              <Footer />
-              <SearchDrawer />
-              <CartDrawer />
-              <WhatsAppFloat />
-            </CartProvider>
-          </SearchProvider>
-        </WishlistProvider>
+        <MenuSubmenuProvider>
+          <WishlistProvider>
+            <SearchProvider>
+              <CartProvider>
+                <AnnouncementBar />
+                <Header />
+                <main id="main-content" className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+                <SearchDrawer />
+                <CartDrawer />
+                <WhatsAppFloat />
+              </CartProvider>
+            </SearchProvider>
+          </WishlistProvider>
+        </MenuSubmenuProvider>
       </body>
     </html>
   );

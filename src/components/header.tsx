@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
-import { mainNavigation } from "@/data/data";
 import { siteConfig } from "@/lib/site-config";
 import { useCart } from "@/context/cart-context";
+import { useMenuSubmenu } from "@/context/menu-submenu-context";
 import { useSearchPanel } from "@/context/search-context";
 import { useWishlist } from "@/context/wishlist-context";
 import { NavUnderlineLink } from "@/components/nav-underline-link";
@@ -18,6 +18,7 @@ function getDropdownItems(item: NavItem): NavItem[] {
 }
 
 export function Header() {
+  const { navigation } = useMenuSubmenu();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -69,15 +70,15 @@ export function Header() {
           </div>
 
           <nav className="hidden lg:flex items-stretch justify-center gap-3 xl:gap-5 min-w-0 px-2 xl:px-4">
-            {mainNavigation.map((item) => {
-              const isOpen = activeMenu === item.label;
+            {navigation.map((item) => {
+              const isOpen = activeMenu === item.href;
               const dropdownItems = getDropdownItems(item);
 
               return (
                 <div
-                  key={item.label}
+                  key={item.href}
                   className="relative shrink-0"
-                  onMouseEnter={() => setActiveMenu(item.label)}
+                  onMouseEnter={() => setActiveMenu(item.href)}
                   onMouseLeave={() => setActiveMenu(null)}
                 >
                   <NavUnderlineLink href={item.href} active={isOpen}>
@@ -176,12 +177,12 @@ export function Header() {
               </button>
             </div>
             <nav className="p-4 space-y-1">
-              {mainNavigation.map((item) => {
-                const isExpanded = mobileExpanded === item.label;
+              {navigation.map((item) => {
+                const isExpanded = mobileExpanded === item.href;
                 const dropdownItems = getDropdownItems(item);
 
                 return (
-                  <div key={item.label} className="border-b border-neutral-100 last:border-0">
+                  <div key={item.href} className="border-b border-neutral-100 last:border-0">
                     <div className="flex items-center">
                       <NavUnderlineLink
                         href={item.href}
@@ -197,7 +198,7 @@ export function Header() {
                         aria-expanded={isExpanded}
                         aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label} menu`}
                         onClick={() =>
-                          setMobileExpanded(isExpanded ? null : item.label)
+                          setMobileExpanded(isExpanded ? null : item.href)
                         }
                       >
                         <ChevronDown
