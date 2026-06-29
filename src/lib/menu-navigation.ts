@@ -4,6 +4,14 @@ function collectionHref(slug: string): string {
   return `/collection/${slug}`;
 }
 
+function normalizeMenuSubmenus(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data?.menus)) return data.data.menus;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.menus)) return data.menus;
+  return [];
+}
+
 export function mapMenuSubmenusToNavigation(menuSubmenus: any[]): NavItem[] {
   if (!Array.isArray(menuSubmenus)) return [];
 
@@ -15,4 +23,20 @@ export function mapMenuSubmenusToNavigation(menuSubmenus: any[]): NavItem[] {
       href: collectionHref(child.slug),
     })),
   }));
+}
+
+export function getCollectionTitleFromNavigation(
+  menuResponse: any,
+  slug: string,
+): string | null {
+  const menus = normalizeMenuSubmenus(menuResponse);
+
+  for (const menu of menus) {
+    if (menu.slug === slug) return menu.name;
+
+    const child = menu.children?.find((item: any) => item.slug === slug);
+    if (child) return child.name;
+  }
+
+  return null;
 }

@@ -7,6 +7,7 @@ type SiteImageProps = Omit<ImageProps, "src"> & {
 /** Local SVGs use native img; photos use next/image optimization */
 export function SiteImage({ src, alt, className, priority, sizes, fill }: SiteImageProps) {
   const isSvg = src.endsWith(".svg");
+  const isRemote = /^https?:\/\//.test(src);
 
   if (isSvg) {
     if (fill) {
@@ -41,6 +42,7 @@ export function SiteImage({ src, alt, className, priority, sizes, fill }: SiteIm
       priority={priority}
       sizes={sizes}
       fill={fill}
+      unoptimized={isRemote}
     />
   );
 }
