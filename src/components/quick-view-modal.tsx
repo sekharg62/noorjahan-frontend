@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import type { Product } from "@/types";
 import { formatPrice } from "@/lib/site-config";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { SoldOutRibbon } from "@/components/sold-out-ribbon";
 import { WishlistButton } from "@/components/wishlist-button";
 
 interface QuickViewModalProps {
@@ -58,7 +59,7 @@ export function QuickViewModal({
         </button>
 
         <div className="grid md:grid-cols-2">
-          <div className="relative aspect-[3/4] bg-neutral-100">
+          <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
             <SiteImage
               src={product.image}
               alt={product.name}
@@ -71,6 +72,7 @@ export function QuickViewModal({
               className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/95 hover:bg-white shadow-sm"
               iconClassName="w-5 h-5"
             />
+            {product.soldOut && <SoldOutRibbon size="md" />}
           </div>
           <div className="p-6 md:p-8 flex flex-col justify-center">
             <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">

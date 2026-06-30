@@ -1,4 +1,4 @@
-import { publicApi } from "@/service";
+import { publicApi, type ApiRequestConfig } from "@/service";
 
 const PRODUCTS_ENDPOINT = "/api/products";
 
@@ -27,6 +27,14 @@ export const productService = {
   getBySlug(slug: string): Promise<any> {
     return publicApi.get<any>(
       `${PRODUCTS_ENDPOINT}/${encodeURIComponent(slug)}`,
+    );
+  },
+
+  search(query: string, config?: ApiRequestConfig): Promise<any> {
+    const trimmed = query.trim();
+    return publicApi.get<any>(
+      `${PRODUCTS_ENDPOINT}/search?q=${encodeURIComponent(trimmed)}`,
+      config,
     );
   },
 };

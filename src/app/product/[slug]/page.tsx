@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <div className="mt-8 pt-8 border-t border-neutral-200 text-sm text-neutral-600 space-y-2">
               <p>Free shipping on orders over {formatFreeShippingThreshold()}</p>
-              <p>International delivery available</p>
+          
             </div>
           </div>
         </div>

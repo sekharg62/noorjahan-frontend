@@ -35,14 +35,17 @@ function getDefaultFormState(
   };
 }
 
-function buildAddressPayload(form: AddressFormState): any {
+function buildAddressPayload(form: AddressFormState, isEdit = false): any {
   const payload: any = {
-    fullName: form.fullName.trim(),
-    phone: form.phone.trim().replace(/\D/g, ""),
     address: form.address.trim(),
     city: form.city.trim(),
     pincode: form.pincode.trim(),
   };
+
+  if (!isEdit) {
+    payload.fullName = form.fullName.trim();
+    payload.phone = form.phone.trim().replace(/\D/g, "");
+  }
 
   if (form.alternativePh.trim()) {
     payload.alternativePh = form.alternativePh.trim().replace(/\D/g, "");
@@ -129,7 +132,7 @@ export function CheckoutAddressSection({
     setActionLoading(true);
     setFormError(null);
 
-    const payload = buildAddressPayload(form);
+    const payload = buildAddressPayload(form, formMode === "edit");
 
     try {
       if (formMode === "edit" && editingId) {
@@ -216,6 +219,7 @@ export function CheckoutAddressSection({
               value={form.fullName}
               onChange={(value) => handleFieldChange("fullName", value)}
               required
+              readOnly={formMode === "edit"}
             />
             <AddressInput
               id="address-phone"
@@ -224,6 +228,7 @@ export function CheckoutAddressSection({
               onChange={(value) => handleFieldChange("phone", value)}
               required
               inputMode="numeric"
+              readOnly={formMode === "edit"}
             />
           </div>
           <AddressInput
@@ -400,6 +405,7 @@ function AddressInput({
   onChange,
   required = false,
   inputMode,
+  readOnly = false,
 }: {
   id: string;
   label: string;
@@ -407,6 +413,7 @@ function AddressInput({
   onChange: (value: string) => void;
   required?: boolean;
   inputMode?: "numeric" | "text";
+  readOnly?: boolean;
 }) {
   return (
     <div>
@@ -422,7 +429,12 @@ function AddressInput({
         onChange={(e) => onChange(e.target.value)}
         required={required}
         inputMode={inputMode}
-        className="w-full border border-neutral-300 px-4 py-3 text-sm text-neutral-900 focus:outline-none focus:border-neutral-900"
+        readOnly={readOnly}
+        className={`w-full border border-neutral-300 px-4 py-3 text-sm focus:outline-none ${
+          readOnly
+            ? "bg-neutral-50 text-neutral-600 cursor-default"
+            : "text-neutral-900 focus:border-neutral-900"
+        }`}
       />
     </div>
   );

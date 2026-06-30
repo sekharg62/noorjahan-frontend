@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SiteImage } from "@/components/site-image";
+import { SoldOutRibbon } from "@/components/sold-out-ribbon";
 import { WishlistButton } from "@/components/wishlist-button";
 import type { Product } from "@/types";
 
@@ -30,11 +31,7 @@ export function ProductImages({ product }: ProductImagesProps) {
           className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/95 hover:bg-white shadow-sm"
           iconClassName="w-5 h-5"
         />
-        {product.soldOut && (
-          <span className="absolute top-4 left-4 bg-white text-neutral-900 text-xs uppercase tracking-widest px-3 py-1.5">
-            Sold out
-          </span>
-        )}
+        {product.soldOut && <SoldOutRibbon size="md" />}
       </div>
 
       {images.length > 1 && (

@@ -7,6 +7,7 @@ import { Eye } from "lucide-react";
 import type { Product } from "@/types";
 import { formatPrice } from "@/lib/site-config";
 import { QuickViewModal } from "@/components/quick-view-modal";
+import { SoldOutRibbon } from "@/components/sold-out-ribbon";
 import { WishlistButton } from "@/components/wishlist-button";
 
 interface ProductCardProps {
@@ -38,11 +39,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             iconClassName="w-4 h-4"
           />
 
-          {product.soldOut && (
-            <span className="absolute top-3 left-3 bg-white text-neutral-900 text-[10px] uppercase tracking-widest px-2 py-1">
-              Sold out
-            </span>
-          )}
+          {product.soldOut && <SoldOutRibbon />}
 
           <div className="absolute inset-x-0 bottom-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button

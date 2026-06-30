@@ -19,14 +19,49 @@ function getProductImages(item: any): any[] {
   );
 }
 
+function getProductImageUrls(item: any): string[] {
+  const images = getProductImages(item);
+  const urls = images.map((image) => image.imgUrl).filter(Boolean);
+  if (urls.length > 0) return urls;
+  if (item?.primaryImage?.imgUrl) return [item.primaryImage.imgUrl];
+  return [];
+}
+
+function getCollectionInfo(item: any, categorySlug?: string) {
+  if (item.menuSubmenu) {
+    const slug = item.menuSubmenu.slug ?? categorySlug ?? "";
+    return {
+      collectionSlug: slug,
+      collectionName:
+        item.menuSubmenu.name ?? formatCategoryName(slug),
+    };
+  }
+
+  if (item.category) {
+    const slug = item.category.slug ?? categorySlug ?? "";
+    const categoryName = item.category.name ?? formatCategoryName(slug);
+    const parentName = item.category.parent?.name;
+    return {
+      collectionSlug: slug,
+      collectionName: parentName
+        ? `${parentName} / ${categoryName}`
+        : categoryName,
+    };
+  }
+
+  const slug = categorySlug ?? "";
+  return {
+    collectionSlug: slug,
+    collectionName: formatCategoryName(slug),
+  };
+}
+
 export function mapApiProductToProduct(
   item: any,
   categorySlug?: string,
 ): Product {
-  const images = getProductImages(item);
-  const primaryImage =
-    images.find((image) => image.isPrimary)?.imgUrl ?? images[0]?.imgUrl ?? "";
-  const imageUrls = images.map((image) => image.imgUrl).filter(Boolean);
+  const imageUrls = getProductImageUrls(item);
+  const primaryImage = imageUrls[0] ?? "";
   const listPrice = Number(item.price) || 0;
   const offerPrice =
     item.offerPrice != null && item.offerPrice !== ""
@@ -40,9 +75,7 @@ export function mapApiProductToProduct(
     listPrice > offerPrice
       ? listPrice
       : undefined;
-  const collectionSlug = item.menuSubmenu?.slug ?? categorySlug ?? "";
-  const collectionName =
-    item.menuSubmenu?.name ?? formatCategoryName(collectionSlug);
+  const { collectionSlug, collectionName } = getCollectionInfo(item, categorySlug);
 
   return {
     id: item.id,
@@ -75,4 +108,10 @@ export function mapApiProductsToProducts(
   return normalizeProductsResponse(response)
     .filter((item) => item?.isActive !== false)
     .map((item) => mapApiProductToProduct(item, categorySlug));
+}
+
+export function mapApiProductsSearchResponse(response: any): Product[] {
+  return normalizeProductsResponse(response)
+    .filter((item) => item?.isActive !== false)
+    .map((item) => mapApiProductToProduct(item));
 }
