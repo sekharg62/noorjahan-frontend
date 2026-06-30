@@ -6,7 +6,9 @@ import { SearchDrawer } from "@/components/search-drawer";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { AuthProvider } from "@/context/auth-context";
 import { BannerProvider } from "@/context/banner-context";
+import { CustomerProvider } from "@/context/customer-context";
 import { CartProvider } from "@/context/cart-context";
 import { MenuSubmenuProvider } from "@/context/menu-submenu-context";
 import { SearchProvider } from "@/context/search-context";
@@ -42,25 +44,29 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <MenuSubmenuProvider>
-          <BannerProvider>
-            <WishlistProvider>
-              <SearchProvider>
-                <CartProvider>
-                  <AnnouncementBar />
-                  <Header />
-                  <main id="main-content" className="flex-1">
-                    {children}
-                  </main>
-                  <Footer />
-                  <SearchDrawer />
-                  <CartDrawer />
-                  <WhatsAppFloat />
-                </CartProvider>
-              </SearchProvider>
-            </WishlistProvider>
-          </BannerProvider>
-        </MenuSubmenuProvider>
+        <AuthProvider>
+          <CustomerProvider>
+            <MenuSubmenuProvider>
+            <BannerProvider>
+              <WishlistProvider>
+                <SearchProvider>
+                  <CartProvider>
+                    <AnnouncementBar />
+                    <Header />
+                    <main id="main-content" className="flex-1">
+                      {children}
+                    </main>
+                    <Footer />
+                    <SearchDrawer />
+                    <CartDrawer />
+                    <WhatsAppFloat />
+                  </CartProvider>
+                </SearchProvider>
+              </WishlistProvider>
+            </BannerProvider>
+            </MenuSubmenuProvider>
+          </CustomerProvider>
+        </AuthProvider>
       </body>
     </html>
   );

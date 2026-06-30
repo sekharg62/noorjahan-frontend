@@ -4,8 +4,9 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { clearAuthSession, tokenStorage } from "@/lib/auth-storage";
 
-const AUTH_TOKEN_KEY = "noorjahan-auth-token";
+export { tokenStorage } from "@/lib/auth-storage";
 
 function getApiUrl(): string {
   return (
@@ -15,29 +16,12 @@ function getApiUrl(): string {
   );
 }
 
-export const tokenStorage = {
-  get(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  },
-
-  set(token: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  },
-
-  remove(): void {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  },
-};
-
 export type ApiRequestConfig = AxiosRequestConfig & {
   /** When true, skips attaching the auth token even on apiClient. */
   skipAuth?: boolean;
 };
 
-type HttpMethod = "get" | "post" | "patch" | "delete";
+type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
 function attachAuthInterceptor(client: AxiosInstance): void {
   client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -57,7 +41,7 @@ function attachAuthInterceptor(client: AxiosInstance): void {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        tokenStorage.remove();
+        clearAuthSession();
       }
       return Promise.reject(error);
     },
@@ -102,6 +86,9 @@ async function request<T>(
     case "post":
       response = await client.post<T>(url, data, config);
       break;
+    case "put":
+      response = await client.put<T>(url, data, config);
+      break;
     case "patch":
       response = await client.patch<T>(url, data, config);
       break;
@@ -118,6 +105,10 @@ function createApiMethods(client: AxiosInstance) {
 
     post<T>(url: string, data?: unknown, config?: ApiRequestConfig): Promise<T> {
       return request<T>("post", client, url, data, config);
+    },
+
+    put<T>(url: string, data?: unknown, config?: ApiRequestConfig): Promise<T> {
+      return request<T>("put", client, url, data, config);
     },
 
     patch<T>(

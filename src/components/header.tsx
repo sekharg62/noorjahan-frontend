@@ -5,11 +5,13 @@ import { useState } from "react";
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { useCart } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
 import { useMenuSubmenu } from "@/context/menu-submenu-context";
 import { useSearchPanel } from "@/context/search-context";
 import { useWishlist } from "@/context/wishlist-context";
 import { NavUnderlineLink } from "@/components/nav-underline-link";
 import { SiteContainer } from "@/components/site-container";
+import { UserAvatar } from "@/components/user-avatar";
 import type { NavItem } from "@/types";
 
 function getDropdownItems(item: NavItem): NavItem[] {
@@ -17,8 +19,51 @@ function getDropdownItems(item: NavItem): NavItem[] {
   return [{ label: item.label, href: item.href }];
 }
 
+const DESKTOP_NAV_SKELETON_WIDTHS = ["w-14", "w-20", "w-16", "w-24", "w-[4.5rem]"];
+
+function DesktopNavSkeleton() {
+  return (
+    <>
+      {DESKTOP_NAV_SKELETON_WIDTHS.map((width, index) => (
+        <div
+          key={`nav-skeleton-${index}`}
+          className="flex items-center py-6 shrink-0"
+          aria-hidden
+        >
+          <span className={`h-2.5 ${width} rounded-sm bg-neutral-200 animate-pulse`} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+function MobileNavSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }, (_, index) => (
+        <div
+          key={`mobile-nav-skeleton-${index}`}
+          className="border-b border-neutral-100 py-3"
+          aria-hidden
+        >
+          <span
+            className={`block h-3.5 rounded-sm bg-neutral-200 animate-pulse ${
+              index % 2 === 0 ? "w-32" : "w-24"
+            }`}
+          />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function Header() {
-  const { navigation } = useMenuSubmenu();
+  const { navigation, loading: navLoading } = useMenuSubmenu();
+  const { isAuthenticated, customer } = useAuth();
+  const accountHref = isAuthenticated ? "/account/profile" : "/account/login";
+  const accountLabel = isAuthenticated
+    ? customer?.name ?? "Account"
+    : "Login";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -69,8 +114,15 @@ export function Header() {
             </Link>
           </div>
 
-          <nav className="hidden lg:flex items-stretch justify-center gap-3 xl:gap-5 min-w-0 px-2 xl:px-4">
-            {navigation.map((item) => {
+          <nav
+            className="hidden lg:flex items-stretch justify-center gap-3 xl:gap-5 min-w-0 px-2 xl:px-4"
+            aria-busy={navLoading}
+            aria-label={navLoading ? "Loading navigation" : undefined}
+          >
+            {navLoading ? (
+              <DesktopNavSkeleton />
+            ) : (
+              navigation.map((item) => {
               const isOpen = activeMenu === item.href;
               const dropdownItems = getDropdownItems(item);
 
@@ -111,7 +163,8 @@ export function Header() {
                   )}
                 </div>
               );
-            })}
+            })
+            )}
           </nav>
 
           <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0">
@@ -136,11 +189,16 @@ export function Header() {
               )}
             </Link>
             <Link
-              href="/account/login"
-              className="hidden sm:block p-2 text-neutral-700 hover:text-neutral-900 transition-colors"
-              aria-label="Login"
+              href={accountHref}
+              className="p-2 text-neutral-700 hover:text-neutral-900 transition-colors"
+              aria-label={accountLabel}
+              title={accountLabel}
             >
-              <User className="w-5 h-5" />
+              {isAuthenticated && customer ? (
+                <UserAvatar name={customer.name} />
+              ) : (
+                <User className="w-5 h-5" strokeWidth={1.5} />
+              )}
             </Link>
             <button
               type="button"
@@ -176,8 +234,11 @@ export function Header() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="p-4 space-y-1">
-              {navigation.map((item) => {
+            <nav className="p-4 space-y-1" aria-busy={navLoading}>
+              {navLoading ? (
+                <MobileNavSkeleton />
+              ) : (
+                navigation.map((item) => {
                 const isExpanded = mobileExpanded === item.href;
                 const dropdownItems = getDropdownItems(item);
 
@@ -222,7 +283,8 @@ export function Header() {
                       ))}
                   </div>
                 );
-              })}
+              })
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -246,12 +308,19 @@ export function Header() {
                 )}
               </Link>
               <NavUnderlineLink
-                href="/account/login"
+                href={accountHref}
                 variant="dropdown"
                 className="!px-0 !py-3 text-sm uppercase tracking-widest"
                 onClick={() => setMobileOpen(false)}
               >
-                Login
+                <span className="inline-flex items-center gap-2.5">
+                  {isAuthenticated && customer ? (
+                    <UserAvatar name={customer.name} size="sm" />
+                  ) : (
+                    <User className="w-4 h-4" strokeWidth={1.5} />
+                  )}
+                  {accountLabel}
+                </span>
               </NavUnderlineLink>
             </nav>
           </div>

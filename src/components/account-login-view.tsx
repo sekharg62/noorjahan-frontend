@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { SiteContainer } from "@/components/site-container";
 import { AccountField } from "@/components/account-field";
+import { useAuth } from "@/context/auth-context";
 import { accountCopy } from "@/data/static-pages";
+import {
+  buildLoginPayload,
+  customerAuthService,
+  parseAuthResponse,
+} from "@/service/customerAuthService";
+
+const BANGLADESH_COUNTRY_CODE = "+880";
+const BANGLADESH_PHONE_LOCAL_MAX_LENGTH = 11;
 
 type View = "login" | "recover";
 
@@ -13,9 +23,62 @@ function syncViewFromHash(): View {
   return window.location.hash === "#recover" ? "recover" : "login";
 }
 
+function LoginPhoneField({ label }: { label: string }) {
+  const [phoneLocal, setPhoneLocal] = useState("");
+
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value
+      .replace(/\D/g, "")
+      .slice(0, BANGLADESH_PHONE_LOCAL_MAX_LENGTH);
+    setPhoneLocal(digits);
+  };
+
+  return (
+    <div>
+      <label
+        htmlFor="login-phone"
+        className="block text-xs uppercase tracking-widest text-neutral-900 mb-2"
+      >
+        {label}
+      </label>
+      <div className="flex border border-neutral-300 focus-within:border-neutral-900">
+        <span
+          className="shrink-0 px-4 py-3 text-sm text-neutral-600 bg-neutral-50 border-r border-neutral-300 select-none"
+          aria-hidden
+        >
+          {BANGLADESH_COUNTRY_CODE}
+        </span>
+        <input
+          id="login-phone"
+          name="phoneLocal"
+          type="tel"
+          required
+          value={phoneLocal}
+          onChange={handlePhoneChange}
+          autoComplete="tel-national"
+          inputMode="numeric"
+          maxLength={BANGLADESH_PHONE_LOCAL_MAX_LENGTH}
+          placeholder="1XXXXXXXXX"
+          className="min-w-0 flex-1 px-4 py-3 text-sm text-neutral-900 focus:outline-none"
+        />
+      </div>
+    </div>
+  );
+}
+
 export function AccountLoginView() {
+  const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
   const [view, setView] = useState<View>("login");
   const [message, setMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/account/profile");
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     setView(syncViewFromHash());
@@ -28,6 +91,7 @@ export function AccountLoginView() {
     window.location.hash = "recover";
     setView("recover");
     setMessage(null);
+    setError(null);
   };
 
   const showLogin = () => {
@@ -36,12 +100,41 @@ export function AccountLoginView() {
     }
     setView("login");
     setMessage(null);
+    setError(null);
   };
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage(accountCopy.formNotice);
-    e.currentTarget.reset();
+    setSubmitting(true);
+    setError(null);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    const phoneLocal = String(data.get("phoneLocal") ?? "")
+      .trim()
+      .replace(/\D/g, "")
+      .replace(/^0+/, "");
+
+    const payload = buildLoginPayload({
+      phoneLocal,
+      password: String(data.get("password") ?? ""),
+    });
+
+    try {
+      const response = await customerAuthService.login(payload);
+      const session = parseAuthResponse(response);
+
+      if (!session) {
+        throw new Error("Invalid auth response");
+      }
+
+      login(session.token, session.customer);
+      router.replace("/account/profile");
+    } catch {
+      setError(accountCopy.login.error);
+      setSubmitting(false);
+    }
   };
 
   const handleRecover = (e: FormEvent<HTMLFormElement>) => {
@@ -87,13 +180,7 @@ export function AccountLoginView() {
           </form>
         ) : (
           <form onSubmit={handleLogin} className="mt-8 space-y-5">
-            <AccountField
-              id="login-email"
-              name="email"
-              label={accountCopy.login.emailLabel}
-              type="email"
-              autoComplete="email"
-            />
+            <LoginPhoneField label={accountCopy.login.phoneLabel} />
             <AccountField
               id="login-password"
               name="password"
@@ -101,11 +188,19 @@ export function AccountLoginView() {
               type="password"
               autoComplete="current-password"
             />
+
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-neutral-900 text-white text-xs uppercase tracking-[0.2em] py-3.5 hover:bg-neutral-800 transition-colors"
+              disabled={submitting}
+              className="w-full bg-neutral-900 text-white text-xs uppercase tracking-[0.2em] py-3.5 hover:bg-neutral-800 transition-colors disabled:opacity-60"
             >
-              {accountCopy.login.submit}
+              {submitting ? accountCopy.login.submitLoading : accountCopy.login.submit}
             </button>
             <p className="text-center text-sm text-neutral-600">
               {accountCopy.login.noAccount}{" "}

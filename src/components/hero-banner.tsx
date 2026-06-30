@@ -7,6 +7,29 @@ import { useBanners } from "@/context/banner-context";
 
 const AUTO_PLAY_MS = 5500;
 
+const bannerAspectClass = "aspect-[16/7] sm:aspect-[16/6] lg:aspect-[21/8]";
+
+function HeroBannerSkeleton() {
+  return (
+    <section
+      className="relative"
+      aria-busy="true"
+      aria-label="Loading banners"
+    >
+      <div
+        className={`relative ${bannerAspectClass} overflow-hidden bg-neutral-200`}
+      >
+        <div className="absolute inset-0 animate-pulse bg-neutral-200" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          <span className="h-1.5 w-8 rounded-full bg-neutral-300/80" />
+          <span className="h-1.5 w-1.5 rounded-full bg-neutral-300/60" />
+          <span className="h-1.5 w-1.5 rounded-full bg-neutral-300/60" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HeroBanner() {
   const { homeBanners, loading } = useBanners();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -37,7 +60,8 @@ export function HeroBanner() {
     }
   }, [activeIndex, slideCount]);
 
-  if (loading || slideCount === 0) return null;
+  if (loading) return <HeroBannerSkeleton />;
+  if (slideCount === 0) return null;
 
   return (
     <section
@@ -49,7 +73,7 @@ export function HeroBanner() {
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
     >
-      <div className="relative aspect-[16/7] sm:aspect-[16/6] lg:aspect-[21/8] overflow-hidden bg-neutral-100">
+      <div className={`relative ${bannerAspectClass} overflow-hidden bg-neutral-100`}>
         {homeBanners.map((banner, index) => {
           const isActive = index === activeIndex;
 

@@ -4,6 +4,26 @@ export interface NavItem {
   children?: NavItem[];
 }
 
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  createdAt?: string;
+}
+
+export interface CustomerAddress {
+  id: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  pincode: string;
+  alternativePh?: string | null;
+  notes?: string | null;
+  createdAt?: string;
+}
+
 export interface Product {
   id: string;
   slug: string;

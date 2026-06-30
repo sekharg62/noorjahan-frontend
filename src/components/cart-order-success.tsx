@@ -23,6 +23,7 @@ export function CartOrderSuccess({ orderId }: CartOrderSuccessProps) {
   }, [orderId]);
 
   const copy = checkoutCopy.success;
+  const orderNo = order?.id ?? orderId;
 
   return (
     <SiteContainer className="max-w-lg py-12 lg:py-20">
@@ -43,8 +44,9 @@ export function CartOrderSuccess({ orderId }: CartOrderSuccessProps) {
           <div className="mt-8 border border-neutral-200 px-6 py-5 text-sm text-neutral-600 space-y-3">
             <p>
               <span className="font-bold text-neutral-900">{copy.orderId}:</span>{" "}
-              <span className="font-mono text-neutral-900">{order.id}</span>
+              <span className="font-mono text-neutral-900">{orderNo}</span>
             </p>
+            <p className="text-xs text-neutral-500">{copy.trackHint}</p>
             <p>
               <span className="font-bold text-neutral-900">{copy.payment}:</span>{" "}
               {copy.paymentCod} — {formatPrice(order.total)}
@@ -60,7 +62,7 @@ export function CartOrderSuccess({ orderId }: CartOrderSuccessProps) {
             {copy.continueShopping}
           </Link>
           <Link
-            href="/pages/track-order"
+            href={`/pages/track-order?orderNo=${encodeURIComponent(orderNo)}`}
             className="inline-block border border-neutral-900 px-8 py-3.5 text-xs uppercase tracking-[0.2em] hover:bg-neutral-50 transition-colors"
           >
             {copy.trackOrder}

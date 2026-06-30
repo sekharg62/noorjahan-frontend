@@ -56,25 +56,26 @@ function SuccessNotFound() {
 
 export function CheckoutSuccessView() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("order");
+  const orderNo =
+    searchParams.get("orderNo") ?? searchParams.get("order");
   const [order, setOrder] = useState<Order | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!orderId) {
+    if (!orderNo) {
       setLoaded(true);
       return;
     }
     const fromStorage =
-      getOrderById(orderId) ?? loadLastOrderFromSession(orderId);
+      getOrderById(orderNo) ?? loadLastOrderFromSession(orderNo);
     setOrder(fromStorage ?? null);
     setLoaded(true);
-  }, [orderId]);
+  }, [orderNo]);
 
   const copy = checkoutCopy.success;
 
   if (!loaded) return <SuccessLoading />;
-  if (!orderId || !order) return <SuccessNotFound />;
+  if (!orderNo || !order) return <SuccessNotFound />;
 
   const { address } = order;
   const steps = [
@@ -119,7 +120,10 @@ export function CheckoutSuccessView() {
         </p>
         <p className="mt-6 text-lg font-semibold text-neutral-900 tracking-wide">
           {copy.orderId}:{" "}
-          <span className="font-mono">{order.id}</span>
+          <span className="font-mono">{orderNo}</span>
+        </p>
+        <p className="mt-3 text-sm text-neutral-600 max-w-md mx-auto">
+          {copy.trackHint}
         </p>
         <p className="mt-2 text-xs text-neutral-500 uppercase tracking-widest">
           {copy.orderDate}: {formatOrderDate(order.createdAt)}
@@ -271,7 +275,7 @@ export function CheckoutSuccessView() {
           {copy.continueShopping}
         </Link>
         <Link
-          href="/pages/track-order"
+          href={`/pages/track-order?orderNo=${encodeURIComponent(orderNo)}`}
           className="inline-block min-w-[200px] border border-neutral-900 px-8 py-3.5 text-xs uppercase tracking-[0.2em] text-center hover:bg-neutral-50 transition-colors"
         >
           {copy.trackOrder}
