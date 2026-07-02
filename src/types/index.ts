@@ -24,6 +24,16 @@ export interface CustomerAddress {
   createdAt?: string;
 }
 
+export interface ProductSize {
+  id: string;
+  sizeId: string;
+  label: string;
+  sortOrder: number;
+  description?: string | null;
+  stock: number;
+  sku?: string | null;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -38,7 +48,8 @@ export interface Product {
   description: string;
   tags: string[];
   sku: string;
-  sizes: string[];
+  sizes: ProductSize[];
+  totalStock: number;
 }
 
 export interface Collection {
@@ -69,6 +80,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   size: string;
+  sizeId: string;
 }
 
 export interface ShippingAddress {
@@ -81,7 +93,14 @@ export interface ShippingAddress {
   postalCode: string;
 }
 
-export type PaymentMethod = "cod";
+export type PaymentMethod = "COD" | "BKASH" | "NAGAD" | "ROCKET";
+
+export type OnlinePaymentMethod = "BKASH" | "NAGAD" | "ROCKET";
+
+export interface MobilePaymentDetails {
+  senderNumber: string;
+  transactionId: string;
+}
 
 export interface Order {
   id: string;
@@ -89,6 +108,7 @@ export interface Order {
   items: CartItem[];
   address: ShippingAddress;
   paymentMethod: PaymentMethod;
+  paymentDetails?: MobilePaymentDetails;
   subtotal: number;
   shipping: number;
   total: number;

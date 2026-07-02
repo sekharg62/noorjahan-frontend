@@ -5,16 +5,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import { clearAuthSession, tokenStorage } from "@/lib/auth-storage";
+import { getApiUrl } from "@/lib/api-url";
 
 export { tokenStorage } from "@/lib/auth-storage";
-
-function getApiUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_API_URL ??
-    process.env.API_URL ??
-    ""
-  );
-}
 
 export type ApiRequestConfig = AxiosRequestConfig & {
   /** When true, skips attaching the auth token even on apiClient. */
@@ -50,11 +43,18 @@ function attachAuthInterceptor(client: AxiosInstance): void {
 
 function createAxiosInstance(withAuth: boolean): AxiosInstance {
   const instance = axios.create({
-    baseURL: getApiUrl(),
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
+  });
+
+  instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    if (!config.baseURL) {
+      config.baseURL = getApiUrl();
+    }
+
+    return config;
   });
 
   if (withAuth) {

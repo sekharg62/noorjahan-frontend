@@ -65,9 +65,9 @@ export function CartDrawer() {
         ) : (
           <>
             <ul className="flex-1 overflow-y-auto p-5 space-y-5">
-              {items.map(({ product, quantity, size }) => (
+              {items.map(({ product, quantity, size, sizeId }) => (
                 <li
-                  key={getCartLineId(product.id, size)}
+                  key={getCartLineId(product.id, sizeId)}
                   className="flex gap-4"
                 >
                   <div className="relative w-20 h-24 flex-shrink-0 bg-neutral-100">
@@ -97,7 +97,7 @@ export function CartDrawer() {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(product.id, size, quantity - 1)
+                          updateQuantity(product.id, sizeId, quantity - 1)
                         }
                         className="p-1 border border-neutral-300 hover:border-neutral-900"
                         aria-label="Decrease quantity"
@@ -110,7 +110,7 @@ export function CartDrawer() {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(product.id, size, quantity + 1)
+                          updateQuantity(product.id, sizeId, quantity + 1)
                         }
                         className="p-1 border border-neutral-300 hover:border-neutral-900"
                         aria-label="Increase quantity"
@@ -119,7 +119,7 @@ export function CartDrawer() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => removeItem(product.id, size)}
+                        onClick={() => removeItem(product.id, sizeId)}
                         className="ml-auto p-1 text-neutral-500 hover:text-neutral-900"
                         aria-label="Remove item"
                       >

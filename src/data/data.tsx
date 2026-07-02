@@ -5,6 +5,7 @@ import type {
   Product,
 } from "@/types";
 import { images, productImage } from "@/lib/images";
+import { createStaticProductSizes } from "@/lib/product-sizes";
 
 export const collections: Collection[] = [
   {
@@ -88,7 +89,10 @@ const printImage = images.products[2];
 
 export const DEFAULT_PRODUCT_SIZES = ["S", "M", "L", "XL"] as const;
 
-type ProductInput = Omit<Product, "sizes"> & { sizes?: string[] };
+type ProductInput = Omit<Product, "sizes" | "totalStock"> & {
+  sizes?: string[];
+  totalStock?: number;
+};
 
 const productList: ProductInput[] = [
   {
@@ -679,10 +683,22 @@ const productList: ProductInput[] = [
   },
 ];
 
-export const products: Product[] = productList.map((product) => ({
-  ...product,
-  sizes: product.sizes ?? [...DEFAULT_PRODUCT_SIZES],
-}));
+export const products: Product[] = productList.map((product) => {
+  const sizeLabels = product.sizes ?? [...DEFAULT_PRODUCT_SIZES];
+  const sizes = createStaticProductSizes(
+    sizeLabels,
+    product.soldOut ? 0 : 10,
+  );
+  const totalStock =
+    product.totalStock ?? sizes.reduce((sum, size) => sum + size.stock, 0);
+
+  return {
+    ...product,
+    sizes,
+    totalStock,
+    soldOut: product.soldOut ?? totalStock <= 0,
+  };
+});
 
 export const heroSlides: HeroSlide[] = [
   {

@@ -48,9 +48,9 @@ function CartPageContent() {
       ) : (
         <>
           <ul className="divide-y divide-neutral-200">
-            {items.map(({ product, quantity, size }) => (
+            {items.map(({ product, quantity, size, sizeId }) => (
               <li
-                key={getCartLineId(product.id, size)}
+                key={getCartLineId(product.id, sizeId)}
                 className="flex gap-4 py-6"
               >
                 <div className="relative w-24 h-32 shrink-0 bg-neutral-100">
@@ -79,7 +79,7 @@ function CartPageContent() {
                     <button
                       type="button"
                       onClick={() =>
-                        updateQuantity(product.id, size, quantity - 1)
+                        updateQuantity(product.id, sizeId, quantity - 1)
                       }
                       className="p-1.5 border border-neutral-300"
                       aria-label="Decrease"
@@ -90,7 +90,7 @@ function CartPageContent() {
                     <button
                       type="button"
                       onClick={() =>
-                        updateQuantity(product.id, size, quantity + 1)
+                        updateQuantity(product.id, sizeId, quantity + 1)
                       }
                       className="p-1.5 border border-neutral-300"
                       aria-label="Increase"
@@ -99,7 +99,7 @@ function CartPageContent() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => removeItem(product.id, size)}
+                      onClick={() => removeItem(product.id, sizeId)}
                       className="ml-4 text-neutral-500 hover:text-neutral-900"
                       aria-label="Remove"
                     >

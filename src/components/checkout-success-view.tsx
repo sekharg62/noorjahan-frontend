@@ -10,6 +10,7 @@ import { checkoutCopy } from "@/data/static-pages";
 import { getCartLineId } from "@/lib/cart";
 import { getOrderById, loadLastOrderFromSession } from "@/lib/orders";
 import { formatPrice, siteConfig } from "@/lib/site-config";
+import { getPaymentMethodLabel, isOnlinePaymentMethod } from "@/lib/payment";
 import type { Order } from "@/types";
 
 function formatOrderDate(iso: string) {
@@ -141,7 +142,10 @@ export function CheckoutSuccessView() {
           <ul className="divide-y divide-neutral-200">
             {order.items.map((item) => (
               <li
-                key={getCartLineId(item.product.id, item.size)}
+                key={getCartLineId(
+                  item.product.id,
+                  item.sizeId ?? item.size,
+                )}
                 className="flex gap-4 p-5 sm:p-6"
               >
                 <div className="relative w-20 h-24 shrink-0 bg-neutral-100">
@@ -192,9 +196,13 @@ export function CheckoutSuccessView() {
               {copy.payment}
             </h2>
             <p className="text-sm font-semibold text-neutral-900">
-              {copy.paymentCod}
+              {getPaymentMethodLabel(order.paymentMethod)}
             </p>
-            <p className="mt-1 text-xs text-neutral-600">{copy.payOnDelivery}</p>
+            <p className="mt-1 text-xs text-neutral-600">
+              {isOnlinePaymentMethod(order.paymentMethod)
+                ? copy.payOnline
+                : copy.payOnDelivery}
+            </p>
             <p className="mt-4 text-2xl font-bold text-neutral-900">
               {formatPrice(order.total)}
             </p>

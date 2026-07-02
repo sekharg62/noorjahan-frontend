@@ -84,7 +84,19 @@ export function QuickViewModal({
             >
               {product.name}
             </h2>
-            <p className="mt-2 text-lg">{formatPrice(product.price)}</p>
+            <p className="mt-2 text-lg">
+              {formatPrice(product.price)}
+              {product.compareAtPrice && (
+                <span className="ml-2 text-base font-normal line-through text-neutral-400">
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+              )}
+            </p>
+            <p className="mt-2 text-xs uppercase tracking-widest text-neutral-500">
+              {product.totalStock > 0
+                ? `${product.totalStock} in stock`
+                : "Out of stock"}
+            </p>
             <p className="mt-4 text-sm text-neutral-600 leading-relaxed">
               {product.description}
             </p>

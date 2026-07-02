@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "@/types";
 import { useCart } from "@/context/cart-context";
+import {
+  findProductSize,
+  getDefaultSelectedSize,
+} from "@/lib/product-sizes";
 import { QuantitySelector } from "@/components/quantity-selector";
 import { SizeSelector } from "@/components/size-selector";
 
@@ -20,11 +24,29 @@ export function AddToCartButton({
   onAdded,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? "M");
+  const [selectedSize, setSelectedSize] = useState(() =>
+    getDefaultSelectedSize(product),
+  );
   const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState(false);
 
-  if (product.soldOut) {
+  const selectedSizeOption = findProductSize(product, selectedSize);
+  const maxQuantity = Math.max(selectedSizeOption?.stock ?? 0, 0);
+
+  useEffect(() => {
+    const nextSize = getDefaultSelectedSize(product);
+    setSelectedSize(nextSize);
+    setQuantity(1);
+    setSizeError(false);
+  }, [product.id, product.sizes, product.totalStock]);
+
+  useEffect(() => {
+    if (quantity > maxQuantity && maxQuantity > 0) {
+      setQuantity(maxQuantity);
+    }
+  }, [maxQuantity, quantity]);
+
+  if (product.soldOut || product.sizes.length === 0) {
     return (
       <button
         type="button"
@@ -40,7 +62,7 @@ export function AddToCartButton({
   }
 
   const handleAdd = () => {
-    if (!selectedSize) {
+    if (!selectedSize || !selectedSizeOption || selectedSizeOption.stock <= 0) {
       setSizeError(true);
       return;
     }
@@ -56,24 +78,28 @@ export function AddToCartButton({
         selected={selectedSize}
         onChange={setSelectedSize}
         compact={compact}
+        showStock={false}
       />
 
       <QuantitySelector
         value={quantity}
         onChange={setQuantity}
         compact={compact}
+        max={Math.max(maxQuantity, 1)}
+        disabled={maxQuantity <= 0}
       />
 
       {sizeError && (
-        <p className="text-xs text-red-600">Please select a size</p>
+        <p className="text-xs text-red-600">Please select an available size</p>
       )}
 
       <button
         type="button"
         onClick={handleAdd}
+        disabled={maxQuantity <= 0}
         className={
           className ??
-          "w-full bg-neutral-900 text-white py-4 text-xs uppercase tracking-widest hover:bg-neutral-800 transition-colors"
+          "w-full bg-neutral-900 text-white py-4 text-xs uppercase tracking-widest hover:bg-neutral-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         }
       >
         Add to cart

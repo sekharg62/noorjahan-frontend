@@ -30,6 +30,17 @@
     "currency": "BDT",
     "currencySymbol": "৳"
   },
+  "payment": {
+    "bkash": {
+      "personalNumber": "01700000000"
+    },
+    "nagad": {
+      "personalNumber": "01700000000"
+    },
+    "rocket": {
+      "personalNumber": "01700000000"
+    }
+  },
  "social": {
   "facebook": "https://www.facebook.com/yourpage",
   "instagram": "https://www.instagram.com/yourpage",

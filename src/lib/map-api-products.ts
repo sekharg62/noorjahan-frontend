@@ -1,5 +1,9 @@
 import type { Product } from "@/types";
 import {
+  getProductTotalStock,
+  mapApiProductSizes,
+} from "@/lib/product-sizes";
+import {
   normalizeProductResponse,
   normalizeProductsResponse,
 } from "@/service/productService";
@@ -76,6 +80,8 @@ export function mapApiProductToProduct(
       ? listPrice
       : undefined;
   const { collectionSlug, collectionName } = getCollectionInfo(item, categorySlug);
+  const sizes = mapApiProductSizes(item);
+  const totalStock = getProductTotalStock(item, sizes);
 
   return {
     id: item.id,
@@ -87,11 +93,12 @@ export function mapApiProductToProduct(
     collectionName,
     image: primaryImage,
     images: imageUrls.length > 0 ? imageUrls : primaryImage ? [primaryImage] : [],
-    soldOut: item.stock <= 0 || item.isActive === false,
+    soldOut: item.isActive === false || totalStock <= 0,
     description: item.description ?? "",
     tags: [],
-    sku: item.id,
-    sizes: ["S", "M", "L"],
+    sku: sizes.find((size) => size.sku)?.sku ?? item.id,
+    sizes,
+    totalStock,
   };
 }
 

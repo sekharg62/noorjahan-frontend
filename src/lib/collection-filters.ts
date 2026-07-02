@@ -1,4 +1,5 @@
 import type { Product } from "@/types";
+import { getProductSizeLabels } from "@/lib/product-sizes";
 
 export type CollectionSortOption =
   | "featured"
@@ -50,7 +51,7 @@ const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "FREE SIZE"];
 export function getCollectionSizeOptions(products: Product[]): string[] {
   const set = new Set<string>();
   for (const product of products) {
-    for (const size of product.sizes) {
+    for (const size of getProductSizeLabels(product)) {
       set.add(size.toUpperCase() === "FREE SIZE" ? "FREE SIZE" : size.toUpperCase());
     }
   }
@@ -64,7 +65,7 @@ export function getCollectionSizeOptions(products: Product[]): string[] {
 export function countProductsWithSize(products: Product[], size: string): number {
   const normalized = size.toUpperCase();
   return products.filter((p) =>
-    p.sizes.some((s) => s.toUpperCase() === normalized),
+    getProductSizeLabels(p).some((s) => s.toUpperCase() === normalized),
   ).length;
 }
 
@@ -120,7 +121,7 @@ export function filterAndSortProducts(
   if (filters.sizes.length > 0) {
     const selected = new Set(filters.sizes.map((s) => s.toUpperCase()));
     result = result.filter((p) =>
-      p.sizes.some((s) => selected.has(s.toUpperCase())),
+      getProductSizeLabels(p).some((s) => selected.has(s.toUpperCase())),
     );
   }
 

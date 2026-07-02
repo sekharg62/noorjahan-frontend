@@ -4,8 +4,13 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { SiteImage } from "@/components/site-image";
 import { CheckoutAddressSection } from "@/components/checkout-address-section";
+import {
+  CheckoutPaymentSection,
+  type CheckoutPaymentCategory,
+} from "@/components/checkout-payment-section";
 import { checkoutCopy } from "@/data/static-pages";
 import { getCartLineId } from "@/lib/cart";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { persistLastOrderForConfirmation, saveOrder } from "@/lib/orders";
 import { calculateShippingFee } from "@/lib/shipping";
 import { formatPrice } from "@/lib/site-config";
@@ -14,11 +19,19 @@ import {
   buildGuestOrderPayload,
   extractOrderNo,
   orderService,
+  type ApiPaymentMethod,
 } from "@/service/orderService";
 import { useAuth } from "@/context/auth-context";
 import { useCustomer } from "@/context/customer-context";
 import { useCart } from "@/context/cart-context";
-import type { CustomerAddress, Order, ShippingAddress } from "@/types";
+import type {
+  CustomerAddress,
+  MobilePaymentDetails,
+  OnlinePaymentMethod,
+  Order,
+  PaymentMethod,
+  ShippingAddress,
+} from "@/types";
 
 const BANGLADESH_COUNTRY_CODE = "+880";
 const BANGLADESH_PHONE_LOCAL_MAX_LENGTH = 11;
@@ -135,9 +148,9 @@ function CheckoutOrderSummary({
         {copy.orderSummary}
       </h2>
       <ul className="space-y-4 max-h-[320px] overflow-y-auto pr-1">
-        {items.map(({ product, quantity, size }) => (
+        {items.map(({ product, quantity, size, sizeId }) => (
           <li
-            key={getCartLineId(product.id, size)}
+            key={getCartLineId(product.id, sizeId)}
             className="flex gap-3 text-sm"
           >
             <div className="relative w-14 h-[4.5rem] shrink-0 bg-neutral-100">
@@ -183,34 +196,36 @@ function CheckoutOrderSummary({
   );
 }
 
-function CheckoutPaymentSection() {
-  const copy = checkoutCopy;
+const EMPTY_PAYMENT_DETAILS: MobilePaymentDetails = {
+  senderNumber: "",
+  transactionId: "",
+};
 
-  return (
-    <section>
-      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-900 mb-5">
-        {copy.paymentSection}
-      </h2>
-      <label className="flex items-start gap-3 border border-neutral-900 bg-neutral-50 px-4 py-4 cursor-default">
-        <input
-          type="radio"
-          name="paymentMethod"
-          value="cod"
-          defaultChecked
-          readOnly
-          className="mt-0.5 accent-neutral-900"
-        />
-        <span>
-          <span className="block text-sm font-semibold text-neutral-900">
-            {copy.paymentCod}
-          </span>
-          <span className="block mt-1 text-xs text-neutral-600">
-            {copy.paymentCodHint}
-          </span>
-        </span>
-      </label>
-    </section>
-  );
+function resolveApiPaymentMethod(
+  paymentCategory: CheckoutPaymentCategory,
+  onlineMethod: OnlinePaymentMethod | null,
+): ApiPaymentMethod | null {
+  if (paymentCategory === "COD") return "COD";
+  return onlineMethod;
+}
+
+function validateCheckoutPayment(
+  paymentCategory: CheckoutPaymentCategory,
+  onlineMethod: OnlinePaymentMethod | null,
+  paymentDetails: MobilePaymentDetails,
+): string | null {
+  if (paymentCategory === "ONLINE" && !onlineMethod) {
+    return checkoutCopy.paymentOnlineRequired;
+  }
+
+  if (
+    onlineMethod &&
+    (!paymentDetails.senderNumber.trim() || !paymentDetails.transactionId.trim())
+  ) {
+    return checkoutCopy.paymentDetailsRequired;
+  }
+
+  return null;
 }
 
 export function CheckoutForm() {
@@ -221,6 +236,13 @@ export function CheckoutForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [paymentCategory, setPaymentCategory] =
+    useState<CheckoutPaymentCategory>("COD");
+  const [onlineMethod, setOnlineMethod] = useState<OnlinePaymentMethod | null>(
+    null,
+  );
+  const [paymentDetails, setPaymentDetails] =
+    useState<MobilePaymentDetails>(EMPTY_PAYMENT_DETAILS);
 
   const shipping = useMemo(() => calculateShippingFee(subtotal), [subtotal]);
   const total = subtotal + shipping;
@@ -228,16 +250,32 @@ export function CheckoutForm() {
 
   const selectedAddress = addresses.find((item) => item.id === selectedAddressId);
 
+  const handlePaymentCategoryChange = (category: CheckoutPaymentCategory) => {
+    setPaymentCategory(category);
+    if (category === "COD") {
+      setOnlineMethod(null);
+      setPaymentDetails(EMPTY_PAYMENT_DETAILS);
+    }
+  };
+
+  const handleOnlineMethodChange = (method: OnlinePaymentMethod) => {
+    setOnlineMethod(method);
+    setPaymentDetails(EMPTY_PAYMENT_DETAILS);
+  };
+
   const completeOrder = async (
     orderNo: string,
     address: ShippingAddress,
+    orderPaymentMethod: PaymentMethod,
+    orderPaymentDetails?: MobilePaymentDetails,
   ) => {
     const order: Order = {
       id: orderNo,
       createdAt: new Date().toISOString(),
       items: [...items],
       address,
-      paymentMethod: "cod",
+      paymentMethod: orderPaymentMethod,
+      ...(orderPaymentDetails ? { paymentDetails: orderPaymentDetails } : {}),
       subtotal,
       shipping,
       total,
@@ -253,6 +291,25 @@ export function CheckoutForm() {
   const handleGuestSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
+
+    const paymentError = validateCheckoutPayment(
+      paymentCategory,
+      onlineMethod,
+      paymentDetails,
+    );
+    if (paymentError) {
+      setSubmitError(paymentError);
+      return;
+    }
+
+    const apiPaymentMethod = resolveApiPaymentMethod(
+      paymentCategory,
+      onlineMethod,
+    );
+    if (!apiPaymentMethod) {
+      setSubmitError(checkoutCopy.paymentOnlineRequired);
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -275,12 +332,22 @@ export function CheckoutForm() {
       postalCode: String(data.get("postalCode") ?? "").trim(),
     };
 
+    const normalizedPaymentDetails =
+      apiPaymentMethod === "COD"
+        ? undefined
+        : {
+            senderNumber: paymentDetails.senderNumber.trim(),
+            transactionId: paymentDetails.transactionId.trim(),
+          };
+
     try {
       const response = await orderService.placeGuestOrder(
         buildGuestOrderPayload({
           address,
-          phoneLocal,
+          phone: phoneLocal,
           items: [...items],
+          paymentMethod: apiPaymentMethod,
+          paymentDetails: normalizedPaymentDetails,
         }),
       );
       const orderNo = extractOrderNo(response);
@@ -289,9 +356,14 @@ export function CheckoutForm() {
         throw new Error("Order number missing from response");
       }
 
-      await completeOrder(orderNo, address);
-    } catch {
-      setSubmitError(copy.placeOrderError);
+      await completeOrder(
+        orderNo,
+        address,
+        apiPaymentMethod,
+        normalizedPaymentDetails,
+      );
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, copy.placeOrderError));
       setSubmitting(false);
     }
   };
@@ -305,14 +377,43 @@ export function CheckoutForm() {
       return;
     }
 
+    const paymentError = validateCheckoutPayment(
+      paymentCategory,
+      onlineMethod,
+      paymentDetails,
+    );
+    if (paymentError) {
+      setSubmitError(paymentError);
+      return;
+    }
+
+    const apiPaymentMethod = resolveApiPaymentMethod(
+      paymentCategory,
+      onlineMethod,
+    );
+    if (!apiPaymentMethod) {
+      setSubmitError(checkoutCopy.paymentOnlineRequired);
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(null);
+
+    const normalizedPaymentDetails =
+      apiPaymentMethod === "COD"
+        ? undefined
+        : {
+            senderNumber: paymentDetails.senderNumber.trim(),
+            transactionId: paymentDetails.transactionId.trim(),
+          };
 
     try {
       const response = await orderService.placeCustomerOrder(
         buildCustomerOrderPayload({
           addressId: selectedAddress.id,
           items: [...items],
+          paymentMethod: apiPaymentMethod,
+          paymentDetails: normalizedPaymentDetails,
         }),
       );
       const orderNo = extractOrderNo(response);
@@ -324,9 +425,11 @@ export function CheckoutForm() {
       await completeOrder(
         orderNo,
         mapCustomerAddressToShippingAddress(selectedAddress, customer?.email),
+        apiPaymentMethod,
+        normalizedPaymentDetails,
       );
-    } catch {
-      setSubmitError(copy.placeOrderError);
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, copy.placeOrderError));
       setSubmitting(false);
     }
   };
@@ -350,7 +453,14 @@ export function CheckoutForm() {
             selectedAddressId={selectedAddressId}
             onSelectAddress={setSelectedAddressId}
           />
-          <CheckoutPaymentSection />
+          <CheckoutPaymentSection
+            paymentCategory={paymentCategory}
+            onlineMethod={onlineMethod}
+            paymentDetails={paymentDetails}
+            onPaymentCategoryChange={handlePaymentCategoryChange}
+            onOnlineMethodChange={handleOnlineMethodChange}
+            onPaymentDetailsChange={setPaymentDetails}
+          />
 
           {submitError && (
             <p className="text-sm text-red-600" role="alert">
@@ -435,7 +545,14 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <CheckoutPaymentSection />
+        <CheckoutPaymentSection
+          paymentCategory={paymentCategory}
+          onlineMethod={onlineMethod}
+          paymentDetails={paymentDetails}
+          onPaymentCategoryChange={handlePaymentCategoryChange}
+          onOnlineMethodChange={handleOnlineMethodChange}
+          onPaymentDetailsChange={setPaymentDetails}
+        />
 
         {submitError && (
           <p className="text-sm text-red-600" role="alert">

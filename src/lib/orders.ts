@@ -69,7 +69,7 @@ export function createOrderFromCart(params: {
     createdAt: new Date().toISOString(),
     items,
     address,
-    paymentMethod: "cod",
+    paymentMethod: "COD",
     subtotal,
     shipping,
     total: subtotal + shipping,
